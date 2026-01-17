@@ -1,0 +1,25 @@
+{
+  "tests": [
+    {
+      "name": "Search users by ID",
+      "method": "GET",
+      "path": "/?action=search&q=%23ABC123",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true,
+        "users": []
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Search users by username",
+      "method": "GET",
+      "path": "/?action=search&q=@test",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

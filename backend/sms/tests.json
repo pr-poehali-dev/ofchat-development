@@ -1,0 +1,33 @@
+{
+  "tests": [
+    {
+      "name": "Send verification code",
+      "method": "POST",
+      "path": "/?action=send",
+      "body": {
+        "phone": "+79991234567"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true,
+        "message": "string",
+        "dev_code": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Verify code",
+      "method": "POST",
+      "path": "/?action=verify",
+      "body": {
+        "phone": "+79991234567",
+        "code": "123456"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

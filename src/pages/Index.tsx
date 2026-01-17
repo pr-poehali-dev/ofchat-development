@@ -1,10 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useToast } from '@/hooks/use-toast';
 import Icon from '@/components/ui/icon';
+
+const USERS_API_URL = 'https://functions.poehali.dev/50a18014-172e-4335-a4fb-e9c178212e66';
 
 type Tab = 'chats' | 'search' | 'channels' | 'calls' | 'settings' | 'profile';
 
@@ -50,6 +53,7 @@ interface IndexProps {
 }
 
 const Index = ({ user, onLogout }: IndexProps) => {
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<Tab>('chats');
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
   const [messages, setMessages] = useState<Message[]>([
@@ -59,6 +63,62 @@ const Index = ({ user, onLogout }: IndexProps) => {
   ]);
   const [newMessage, setNewMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+
+  useEffect(() => {
+    const delaySearch = setTimeout(async () => {
+      if (searchQuery.trim() && activeTab === 'search') {
+        setIsSearching(true);
+        try {
+          const response = await fetch(`${USERS_API_URL}?action=search&q=${encodeURIComponent(searchQuery)}`);
+          const data = await response.json();
+          
+          if (response.ok && data.success) {
+            setSearchResults(data.users);
+          }
+        } catch (error) {
+          console.error('Search error:', error);
+        } finally {
+          setIsSearching(false);
+        }
+      } else {
+        setSearchResults([]);
+      }
+    }, 500);
+
+    return () => clearTimeout(delaySearch);
+  }, [searchQuery, activeTab]);
+
+  const addContact = async (contactUserId: number) => {
+    try {
+      const response = await fetch(`${USERS_API_URL}?action=add_contact`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          user_id: user.id,
+          contact_user_id: contactUserId
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        toast({
+          title: 'Успешно!',
+          description: 'Контакт добавлен'
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось добавить контакт',
+        variant: 'destructive'
+      });
+    }
+  };
 
   const sendMessage = () => {
     if (!newMessage.trim()) return;
@@ -167,12 +227,54 @@ const Index = ({ user, onLogout }: IndexProps) => {
           )}
 
           {activeTab === 'search' && (
-            <div className="p-4 space-y-4">
-              <div className="text-center py-8">
-                <Icon name="Search" size={48} className="mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">Введите ID или имя пользователя</p>
-                <p className="text-sm text-muted-foreground mt-2">Например: @username или #12345</p>
-              </div>
+            <div className="p-2">
+              {isSearching ? (
+                <div className="text-center py-8">
+                  <Icon name="Loader2" size={48} className="mx-auto text-muted-foreground mb-4 animate-spin" />
+                  <p className="text-muted-foreground">Поиск...</p>
+                </div>
+              ) : searchResults.length > 0 ? (
+                searchResults.map((foundUser) => (
+                  <div key={foundUser.id} className="p-4 rounded-xl mb-2 hover:bg-muted transition-all duration-200">
+                    <div className="flex gap-3 items-center">
+                      <Avatar>
+                        <AvatarFallback className="gradient-primary text-white">
+                          {foundUser.username[0].toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <div className="font-semibold">{foundUser.username}</div>
+                        <div className="text-sm text-muted-foreground">ID: #{foundUser.unique_id}</div>
+                        {foundUser.bio && (
+                          <div className="text-xs text-muted-foreground mt-1">{foundUser.bio}</div>
+                        )}
+                      </div>
+                      {foundUser.is_online && (
+                        <div className="w-2.5 h-2.5 bg-accent rounded-full animate-pulse-glow" />
+                      )}
+                      <Button 
+                        size="sm" 
+                        onClick={() => addContact(foundUser.id)}
+                        className="gradient-primary text-white border-0"
+                      >
+                        <Icon name="UserPlus" size={16} className="mr-1" />
+                        Добавить
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              ) : searchQuery ? (
+                <div className="text-center py-8">
+                  <Icon name="UserX" size={48} className="mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">Пользователи не найдены</p>
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Icon name="Search" size={48} className="mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">Введите ID или имя пользователя</p>
+                  <p className="text-sm text-muted-foreground mt-2">Например: @username или #12345</p>
+                </div>
+              )}
             </div>
           )}
 
