@@ -1,0 +1,57 @@
+{
+  "tests": [
+    {
+      "name": "Register new user with email",
+      "method": "POST",
+      "path": "/?action=register",
+      "body": {
+        "username": "testuser",
+        "email": "test@ofchat.com",
+        "password": "testpass123"
+      },
+      "expectedStatus": 201,
+      "expectedBody": {
+        "success": true,
+        "user": {
+          "username": "string",
+          "unique_id": "string",
+          "email": "string"
+        }
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Register new user with phone",
+      "method": "POST",
+      "path": "/?action=register",
+      "body": {
+        "username": "phoneuser",
+        "phone": "+79991234567",
+        "password": "testpass123"
+      },
+      "expectedStatus": 201,
+      "expectedBody": {
+        "success": true
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Login with username",
+      "method": "POST",
+      "path": "/?action=login",
+      "body": {
+        "identifier": "testuser",
+        "password": "testpass123"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true,
+        "user": {
+          "username": "string",
+          "unique_id": "string"
+        }
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

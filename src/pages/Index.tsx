@@ -44,7 +44,12 @@ const mockCalls = [
   { id: 'call3', name: 'Марина Сидорова', type: 'missed', duration: '', time: '2 дня назад', avatar: '' },
 ];
 
-const Index = () => {
+interface IndexProps {
+  user: any;
+  onLogout: () => void;
+}
+
+const Index = ({ user, onLogout }: IndexProps) => {
   const [activeTab, setActiveTab] = useState<Tab>('chats');
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
   const [messages, setMessages] = useState<Message[]>([
@@ -228,31 +233,40 @@ const Index = () => {
               <div className="flex flex-col items-center">
                 <Avatar className="w-24 h-24 mb-4">
                   <AvatarFallback className="gradient-primary text-white text-3xl">
-                    Я
+                    {user.username[0].toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <h3 className="text-xl font-bold">Мой профиль</h3>
-                <p className="text-muted-foreground">@myusername</p>
-                <Badge className="mt-2 gradient-primary text-white border-0">ID: #42069</Badge>
+                <h3 className="text-xl font-bold">{user.username}</h3>
+                <p className="text-muted-foreground">@{user.username}</p>
+                <Badge className="mt-2 gradient-primary text-white border-0">ID: #{user.unique_id}</Badge>
               </div>
               
               <div className="space-y-3">
                 <div className="p-4 bg-muted rounded-xl">
-                  <div className="text-sm text-muted-foreground">Имя</div>
-                  <div className="font-semibold">Пользователь OfChat</div>
+                  <div className="text-sm text-muted-foreground">Имя пользователя</div>
+                  <div className="font-semibold">{user.username}</div>
                 </div>
-                <div className="p-4 bg-muted rounded-xl">
-                  <div className="text-sm text-muted-foreground">Email</div>
-                  <div className="font-semibold">user@ofchat.com</div>
-                </div>
-                <div className="p-4 bg-muted rounded-xl">
-                  <div className="text-sm text-muted-foreground">Телефон</div>
-                  <div className="font-semibold">+7 999 123-45-67</div>
-                </div>
+                {user.email && (
+                  <div className="p-4 bg-muted rounded-xl">
+                    <div className="text-sm text-muted-foreground">Email</div>
+                    <div className="font-semibold">{user.email}</div>
+                  </div>
+                )}
+                {user.phone && (
+                  <div className="p-4 bg-muted rounded-xl">
+                    <div className="text-sm text-muted-foreground">Телефон</div>
+                    <div className="font-semibold">{user.phone}</div>
+                  </div>
+                )}
               </div>
 
-              <Button className="w-full gradient-primary text-white border-0 hover:opacity-90">
-                Редактировать профиль
+              <Button 
+                onClick={onLogout}
+                variant="outline"
+                className="w-full"
+              >
+                <Icon name="LogOut" className="mr-2 h-4 w-4" />
+                Выйти из аккаунта
               </Button>
             </div>
           )}
